@@ -27,7 +27,7 @@ function WidgetWatch.update()
 end
 
 function WidgetWatch.register(obj)
-    assert(type(obj) == "table" and obj.widget, "WidgetWatch.register: obj.widget é obrigatório")
+    assert(type(obj) == "table" and obj.widget, "WidgetWatch.register: obj.widget is required")
     local w = obj.widget
 
     if not w then

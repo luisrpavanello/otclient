@@ -125,7 +125,7 @@ local function ensureWindow()
                     emptyImbue.protectionCost:setText((comma_value(imbuement['protectionCost'])))
                     emptyImbue.cost:setText(comma_value(imbuement['cost']))
 
-                    -- Verificar se tem todos os itens e gold suficiente
+                    -- Check whether all required items and enough gold are available.
                     local hasEnoughGold = false
                     if not protection then
                         hasEnoughGold = (bankGold + inventoryGold) >= imbuement['cost']
@@ -143,7 +143,7 @@ local function ensureWindow()
                         end
                     end
 
-                    -- Habilitar/desabilitar botÃ£o de imbue baseado em itens E gold
+                    -- Enable or disable the imbue button based on items and gold.
                     if hasAllItems and hasEnoughGold then
                         emptyImbue.imbue:setEnabled(true)
                         emptyImbue.imbue:setImageSource('/game_imbuing/images/imbue_green')
@@ -152,7 +152,7 @@ local function ensureWindow()
                         emptyImbue.imbue:setImageSource('/game_imbuing/images/imbue_empty')
                     end
 
-                    -- Verificar se o botÃ£o de proteÃ§Ã£o deve ser desabilitado
+                    -- Check whether the protection button should be disabled.
                     if (bankGold + inventoryGold) < imbuement['protectionCost'] then
                         protectionBtn:setEnabled(false)
                         emptyImbue.protection:setImageSource('/game_imbuing/old_design/images/useprotection-disabled')
@@ -178,18 +178,18 @@ local function ensureWindow()
         setProtection(not protection)
     end
 
-    -- Configurar hover events para exibir tooltips no painel
+    -- Configure hover events to display tooltips in the panel.
     setupTooltipEvents()
 end
 
 
 local function getCorrectIconId(id)
     local iconId = id
-    if iconId >= 16 then iconId = iconId + 3 end -- pula 16, 17, 18
-    if iconId >= 22 then iconId = iconId + 3 end -- pula 22, 23, 24
-    if iconId >= 43 then iconId = iconId + 3 end -- pula 43, 44, 45
-    if iconId >= 61 then iconId = iconId + 3 end -- pula 61, 62, 63
-    if iconId >= 79 then iconId = iconId + 3 end -- pula 79, 80, 81
+    if iconId >= 16 then iconId = iconId + 3 end -- skip 16, 17, 18
+    if iconId >= 22 then iconId = iconId + 3 end -- skip 22, 23, 24
+    if iconId >= 43 then iconId = iconId + 3 end -- skip 43, 44, 45
+    if iconId >= 61 then iconId = iconId + 3 end -- skip 61, 62, 63
+    if iconId >= 79 then iconId = iconId + 3 end -- skip 79, 80, 81
     return iconId
 end
 
@@ -208,7 +208,7 @@ setProtection = function(value)
         emptyImbue.successRate:setColor('green')
         protectionBtn:setImageClip(torect('66 0 66 66'))
         
-        -- Verificar se há gold suficiente para o custo total com proteção
+        -- Check whether there is enough gold for the total cost with protection.
         if (bankGold + inventoryGold) < (selectedImbue['cost'] + selectedImbue['protectionCost']) then
             emptyImbue.cost:setColor('red')
         else
@@ -224,7 +224,7 @@ setProtection = function(value)
                 emptyImbue.successRate:setColor('red')
             end
             
-            -- Verificar se há gold suficiente para o custo sem proteção
+            -- Check whether there is enough gold for the cost without protection.
             if (bankGold + inventoryGold) < selectedImbue['cost'] then
                 emptyImbue.cost:setColor('red')
             else
@@ -234,7 +234,7 @@ setProtection = function(value)
         end
     end
     
-    -- Re-verificar o estado do botão de imbue quando a proteção mudar
+    -- Recheck the imbue button state when protection changes.
     if selectedImbue then
         local hasAllItems = true
         for i, source in ipairs(selectedImbue['sources']) do
@@ -261,7 +261,7 @@ setProtection = function(value)
             hasEnoughGold = (bankGold + inventoryGold) >= selectedImbue['cost']
         end
         
-        -- Habilitar/desabilitar botão de imbue baseado em itens E gold
+        -- Enable or disable the imbue button based on items and gold.
         if hasAllItems and hasEnoughGold then
             emptyImbue.imbue:setEnabled(true)
             emptyImbue.imbue:setImageSource('/game_imbuing/images/imbue_green')
@@ -447,7 +447,7 @@ function oldDesignApi.onImbuementItem(itemId, tier, slots, activeSlots, imbuemen
             selectSlot(widget, i, slot)
         end
 
-        -- Atualiza o ícone de todos os slots ativos imediatamente
+        -- Update all active slot icons immediately.
         local slotIcon = activeSlotBtn:getChildById('icon')
         activeSlotBtn:setText('')
         slotIcon:setVisible(true)
@@ -470,7 +470,7 @@ function oldDesignApi.onImbuementItem(itemId, tier, slots, activeSlots, imbuemen
         end
     end
     
-    -- Reconfigurar eventos de hover após carregar os slots
+    -- Reconfigure hover events after loading the slots.
     setupTooltipEvents()
     show()
 end
@@ -489,9 +489,9 @@ function oldDesignApi.onResourcesBalanceChange(balance, oldBalance, type)
         if type == ResourceTypes.BANK_BALANCE or type == ResourceTypes.GOLD_EQUIPPED then
             imbuingWindow.balance:setText(tr(comma_value (player:getTotalMoney())))
             
-            -- Re-verificar o estado dos botões quando o saldo mudar
+            -- Recheck button states when the balance changes.
             if selectedImbue and emptyImbue:isVisible() then
-                -- Verificar botão de proteção
+                -- Check the protection button.
                 if (bankGold + inventoryGold) < selectedImbue['protectionCost'] then
                     protectionBtn:setEnabled(false)
                     emptyImbue.protection:setImageSource('/game_imbuing/old_design/images/useprotection-disabled')
@@ -502,7 +502,7 @@ function oldDesignApi.onResourcesBalanceChange(balance, oldBalance, type)
                     emptyImbue.protectionCost:setColor('white')
                 end
                 
-                -- Verificar se tem todos os itens
+                -- Check whether all required items are available.
                 local hasAllItems = true
                 for i, source in ipairs(selectedImbue['sources']) do
                     local itemFound = false
@@ -521,7 +521,7 @@ function oldDesignApi.onResourcesBalanceChange(balance, oldBalance, type)
                     end
                 end
                 
-                -- Verificar gold suficiente
+                -- Check whether enough gold is available.
                 local hasEnoughGold = false
                 if protection then
                     hasEnoughGold = (bankGold + inventoryGold) >= (selectedImbue['cost'] + selectedImbue['protectionCost'])
@@ -539,7 +539,7 @@ function oldDesignApi.onResourcesBalanceChange(balance, oldBalance, type)
                     end
                 end
                 
-                -- Habilitar/desabilitar botão de imbue baseado em itens E gold
+                -- Enable or disable the imbue button based on items and gold.
                 if hasAllItems and hasEnoughGold then
                     emptyImbue.imbue:setEnabled(true)
                     emptyImbue.imbue:setImageSource('/game_imbuing/images/imbue_green')
@@ -584,19 +584,19 @@ toggle = function()
     show()
 end
 
--- Função para formatar texto com quebra de linha automática
+-- Format text with automatic line breaks.
 formatTooltipText = function(text)
     if not text then return '' end
     
-    -- Definir largura máxima aproximada (em caracteres)
+    -- Define the approximate maximum width in characters.
     local maxWidth = 240
     
     local formattedText = ''
     local currentLine = ''
     
-    -- Dividir o texto em palavras
+    -- Split the text into words.
     for word in text:gmatch("%S+") do
-        -- Se adicionar a palavra exceder a largura máxima
+        -- Start a new line if adding the word exceeds the maximum width.
         if #currentLine + #word + 1 > maxWidth and #currentLine > 0 then
             formattedText = formattedText .. currentLine .. '\n'
             currentLine = word
@@ -609,7 +609,7 @@ formatTooltipText = function(text)
         end
     end
     
-    -- Adicionar a última linha
+    -- Add the last line.
     if #currentLine > 0 then
         formattedText = formattedText .. currentLine
     end
@@ -617,14 +617,14 @@ formatTooltipText = function(text)
     return formattedText
 end
 
--- Função para configurar eventos de hover em elementos com tooltip
+-- Configure hover events on elements with tooltips.
 setupTooltipEvents = function()
     if not infoPanel then return end
     
     local tooltipContent = infoPanel:recursiveGetChildById('tooltipContent')
     if not tooltipContent then return end
     
-    -- Função para adicionar hover a um widget
+    -- Add hover behavior to a widget.
     local function addHoverToWidget(widget)
         if not widget or not widget.getTooltip then return end
         
@@ -632,7 +632,7 @@ setupTooltipEvents = function()
             if hovered then
                 local tooltip = self:getTooltip()
                 if tooltip and tooltip ~= '' then
-                    -- Adicionar quebras de linha para textos longos
+                    -- Add line breaks for long text.
                     local formattedText = formatTooltipText(tooltip)
                     tooltipContent:setText(formattedText)
                 else
@@ -644,12 +644,12 @@ setupTooltipEvents = function()
         end
     end
     
-    -- Adicionar hover aos botões principais
+    -- Add hover behavior to the main buttons.
     if emptyImbue.imbue then addHoverToWidget(emptyImbue.imbue) end
     if emptyImbue.protection then addHoverToWidget(emptyImbue.protection) end
     if clearImbue.clear then addHoverToWidget(clearImbue.clear) end
     
-    -- Adicionar hover aos itens requeridos
+    -- Add hover behavior to required items.
     if emptyImbue.requiredItems then
         for i = 1, 3 do
             local item = emptyImbue.requiredItems:getChildByIndex(i).item
@@ -657,7 +657,7 @@ setupTooltipEvents = function()
         end
     end
     
-    -- Adicionar hover aos slots
+    -- Add hover behavior to slots.
     if imbuingWindow.itemInfo and imbuingWindow.itemInfo.slots then
         for i = 1, 3 do
             local slot = imbuingWindow.itemInfo.slots:getChildByIndex(i)

@@ -35,7 +35,7 @@ function itemApi.setup(itemId, tier, slots, activeSlots, availableImbuements, ne
     self.selectedSlot = 0
     self.onSelectImbuementSlot(self.selectedSlot)
 
-    -- Verificar se o slot 0 tem um imbuement ativo e passar para updateWindowState
+    -- Check whether slot 0 has an active imbuement and pass it to updateWindowState.
     local imbuement = self.activeSlots["slot0"]
     self.updateWindowState(imbuement)
 

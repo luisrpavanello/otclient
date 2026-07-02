@@ -1058,7 +1058,7 @@ function chooseOffert(self, focusedChild)
             end
         end
 
-        -- 👇 Confirmação corrigida
+        -- Fixed confirmation.
         offerPanel:getChildById('btnBuy').onClick = function(widget)
             if acceptWindow then
                 destroyWindow(acceptWindow)

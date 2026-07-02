@@ -12,7 +12,7 @@
 ]]
 --
 
-PaperdollManager.register(1, 'Armadura', 512, {
+PaperdollManager.register(1, 'Armor', 512, {
     priority = 1,
     addon = 1,
     onlyAddon = true,
@@ -30,7 +30,7 @@ PaperdollManager.register(2, 'Weapons/shield', 512, {
     onlyAddon = true
 })
 
-PaperdollManager.register(3, 'Peitoral', 367, {
+PaperdollManager.register(3, 'Breastplate', 367, {
     priority = 3,
     addon = 1,
     onlyAddon = true
@@ -42,7 +42,7 @@ PaperdollManager.register(4, 'Akuma Aura', 664, {
     onlyAddon = true
 })
 
-PaperdollManager.register(5, 'Mochila', 136, {
+PaperdollManager.register(5, 'Backpack', 136, {
     priority = 5,
     addon = 1,
     color = 77,

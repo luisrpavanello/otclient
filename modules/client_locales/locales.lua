@@ -2,6 +2,7 @@ dofile 'neededtranslations'
 
 -- private variables
 local defaultLocaleName = 'en'
+local allowedLocaleNames = { en = true }
 local installedLocales
 local currentLocale
 
@@ -72,20 +73,10 @@ function init()
     installLocales('/locales')
 
     local userLocaleName = g_settings.get('locale', 'false')
-    if userLocaleName ~= 'false' and setLocale(userLocaleName) then
-        pdebug('Using configured locale: ' .. userLocaleName)
-    else
-        setLocale(defaultLocaleName)
-        if g_app.hasUpdater() then
-            connect(g_app, {
-                onUpdateFinished = createWindow,
-            })
-        else
-            connect(g_app, {
-                onRun = createWindow,
-            })
-        end
+    if userLocaleName ~= defaultLocaleName then
+        g_settings.set('locale', defaultLocaleName)
     end
+    setLocale(defaultLocaleName)
 
     ProtocolGame.registerExtendedOpcode(ExtendedIds.Locale, onExtendedLocales)
     connect(g_game, {
@@ -137,7 +128,7 @@ function installLocale(locale)
         error('Unable to install locale.')
     end
 
-    if _G.allowedLocales and not _G.allowedLocales[locale.name] then
+    if not allowedLocaleNames[locale.name] then
         return
     end
 

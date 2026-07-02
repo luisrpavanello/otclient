@@ -1134,7 +1134,7 @@ function GemAtelier.setupVesselPanel()
 
         if not background or not gemContainer or not gemItem then
             g_logger.debug(string.format(
-                "[GemAtelier] Estrutura do slot %d incompleta (bg=%s, container=%s, gem=%s)",
+                "[GemAtelier] Slot %d structure is incomplete (bg=%s, container=%s, gem=%s)",
                 i, tostring(background ~= nil), tostring(gemContainer ~= nil), tostring(gemItem ~= nil)
             ))
         else
