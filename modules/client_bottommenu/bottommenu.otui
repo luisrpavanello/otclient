@@ -47,7 +47,7 @@ Panel
     text-auto-resize: true
     color: #c0c0c0ff
     margin-bottom: 110
-    text: OTClient Redemption
+    text: Numenor - Client
     ttf-font: martel
     ttf-font-size: 90
     stroke: 2 black
@@ -167,6 +167,8 @@ Panel
         size: 64 64
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
+        center: true
+        idle-animate: true
         image-source: ""
         image-border: 0
         border-width: 0
@@ -176,6 +178,15 @@ Panel
         id: monsterImage
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
+        visible: false
+
+      Label
+        id: creatureNameFallback
+        anchors.fill: parent
+        text-align: center
+        text-wrap: true
+        font: verdana-9px
+        color: #d0d0d0
         visible: false
 
     Label
@@ -196,6 +207,8 @@ Panel
         size: 64 64
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
+        center: true
+        idle-animate: true
         image-source: ""
         image-border: 0
         border-width: 0
@@ -205,6 +218,15 @@ Panel
         id: bossImage
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
+        visible: false
+
+      Label
+        id: bossNameFallback
+        anchors.fill: parent
+        text-align: center
+        text-wrap: true
+        font: verdana-9px
+        color: #d0d0d0
         visible: false
 
     Label

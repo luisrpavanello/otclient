@@ -17,8 +17,12 @@ local eventSchedulerCalendarMonth
 local boostedWindow
 local monsterOutfit
 local monsterImage
+local monsterNameFallback
 local bossOutfit
 local bossImage
+local bossNameFallback
+local pendingBoostedData
+local boostedApplyAttempts = 0
 
 local CREATURE_BONUS_TEXT = "Today's boosted creature: %s\n\n\tBoosted creatures yield more experience\n points, carry more loot than usual\n and respawn at a faster rate."
 local BOSS_BONUS_TEXT = "Today's boosted boss: %s\n\n\tBoosted boss contain more loot and\n count more kills for your bosstiary."
@@ -77,11 +81,15 @@ function init()
 
         monsterImage = boostedWindow:recursiveGetChildById('monsterImage')
         bossImage = boostedWindow:recursiveGetChildById('bossImage')
+        monsterNameFallback = boostedWindow:recursiveGetChildById('creatureNameFallback')
+        bossNameFallback = boostedWindow:recursiveGetChildById('bossNameFallback')
 
         monsterImage:setImageSource("images/icon-questionmark")
         monsterImage:setVisible(true)
+        monsterNameFallback:setVisible(false)
         bossImage:setImageSource("images/icon-questionmark")
         bossImage:setVisible(true)
+        bossNameFallback:setVisible(false)
     end
     if g_game.isOnline() then
         hide()
@@ -513,34 +521,102 @@ end
 
 -- (internal)
 -- set creature/boss to boosted slot
-local function applyToBoostedSlot(raceId, outfitWidget, imageWidget, fileName, tooltipText)
-    -- check if raceId was provided in the JSON response
-    if not raceId then
+local function showBoostedNameFallback(name, outfitWidget, imageWidget, nameFallbackWidget, tooltipText)
+    outfitWidget:setVisible(false)
+    imageWidget:setVisible(false)
+    if nameFallbackWidget then
+        nameFallbackWidget:setText(name or "Unknown")
+        nameFallbackWidget:setTooltip(tr(tooltipText, name or "Unknown"))
+        nameFallbackWidget:setVisible(true)
+    end
+end
+
+local function applyToBoostedSlot(raceId, outfitData, boostedName, outfitWidget, imageWidget, nameFallbackWidget, fileName, tooltipText)
+    if not raceId and not outfitData then
         return
     end
 
-    -- fetch race data
-    local raceData = g_things.getRaceData(raceId)
+    local outfit
+    local name = boostedName or "Unknown"
 
-    -- check if race id is present in the staticdata
-    if raceData.raceId == 0 then
-        local msg = string.format("[%s] Creature with race id %s was not found.", fileName,tostring(raceId))
+    if raceId then
+        local raceData = g_things.getRaceData(raceId)
+        if raceData and raceData.raceId ~= 0 then
+            outfit = raceData.outfit
+            name = raceData.name or name
+        end
+    end
+
+    if not outfit and outfitData and outfitData.type and outfitData.type > 0 then
+        outfit = {
+            type = outfitData.type,
+            head = outfitData.head or 0,
+            body = outfitData.body or 0,
+            legs = outfitData.legs or 0,
+            feet = outfitData.feet or 0,
+            addons = outfitData.addons or 0,
+            mount = outfitData.mount or 0
+        }
+    end
+
+    if not outfit then
+        local msg = string.format("[%s] Boosted creature with race id %s could not be rendered.", fileName, tostring(raceId))
         g_logger.warning(msg)
         return
     end
 
-    -- apply to selected widget
-    outfitWidget:setOutfit(raceData.outfit)
+    local thingType = g_things.getThingType(outfit.type, ThingCategoryCreature)
+    if not thingType then
+        outfitWidget:setVisible(false)
+        imageWidget:setVisible(false)
+        if nameFallbackWidget then
+            nameFallbackWidget:setText(name)
+            nameFallbackWidget:setTooltip(tr(tooltipText, name))
+            nameFallbackWidget:setVisible(true)
+        end
+        g_logger.warning(string.format("[Boosted] missing creature thing type %s for %s; showing name fallback", tostring(outfit.type), name))
+        return
+    end
+
+    outfitWidget:setOutfit(outfit)
     outfitWidget:getCreature():setStaticWalking(1000)
     outfitWidget:setVisible(true)
     imageWidget:setVisible(false)
-    outfitWidget:setTooltip(tr(tooltipText, raceData.name or "Unknown"))
+    if nameFallbackWidget then
+        nameFallbackWidget:setVisible(false)
+    end
+    outfitWidget:setTooltip(tr(tooltipText, name))
+    g_logger.info(string.format("[Boosted] applied %s with outfit type %s", name, tostring(outfit.type)))
 end
 
 function setBoostedCreatureAndBoss(data)
+    g_logger.info(string.format(
+        "[Boosted] received creature race=%s outfit=%s boss race=%s outfit=%s thingsLoaded=%s",
+        tostring(data.creatureraceid or data.raceid),
+        tostring(data.creatureoutfit and data.creatureoutfit.type),
+        tostring(data.bossraceid),
+        tostring(data.bossoutfit and data.bossoutfit.type),
+        tostring(modules.game_things.isLoaded())
+    ))
+
     if not modules.game_things.isLoaded() then
+        showBoostedNameFallback(data.creaturename or "Unknown", monsterOutfit, monsterImage, monsterNameFallback, CREATURE_BONUS_TEXT)
+        showBoostedNameFallback(data.bossname or "Unknown", bossOutfit, bossImage, bossNameFallback, BOSS_BONUS_TEXT)
+
+        pendingBoostedData = data
+        boostedApplyAttempts = boostedApplyAttempts + 1
+        if boostedApplyAttempts <= 60 then
+            scheduleEvent(function()
+                if pendingBoostedData then
+                    setBoostedCreatureAndBoss(pendingBoostedData)
+                end
+            end, 250)
+        end
         return
     end
+
+    pendingBoostedData = nil
+    boostedApplyAttempts = 0
 
     -- file name for error reporting
     local fileName = debug.getinfo(1, "S").source -- current file name - bottommenu.lua
@@ -549,8 +625,8 @@ function setBoostedCreatureAndBoss(data)
     -- before bosstiary was introduced, the webservice was sending creature race in 'raceid' field
     -- after bosstiary was added, it was changed to 'creatureraceid'
     -- this 'or' statement ensures backwards compatibility
-    applyToBoostedSlot(data.creatureraceid or data.raceid, monsterOutfit, monsterImage, fileName, CREATURE_BONUS_TEXT)
+    applyToBoostedSlot(data.creatureraceid or data.raceid, data.creatureoutfit, data.creaturename, monsterOutfit, monsterImage, monsterNameFallback, fileName, CREATURE_BONUS_TEXT)
 
     -- boosted boss
-    applyToBoostedSlot(data.bossraceid, bossOutfit, bossImage, fileName, BOSS_BONUS_TEXT)
+    applyToBoostedSlot(data.bossraceid, data.bossoutfit, data.bossname, bossOutfit, bossImage, bossNameFallback, fileName, BOSS_BONUS_TEXT)
 end

@@ -130,8 +130,8 @@ elseif ($requestType === 'showoff') {
 
     $response = array(
         "image" => "https://raw.githubusercontent.com/mehah/otclient/main/data/images/clienticon.png",
-        "title" => "OTClient - Redemption",
-        "description" => "Otclient is an alternative Tibia client for usage with otserv. It aims to be complete and flexible, for that it uses LUA scripting for all game interface functionality and configurations files with a syntax similar to CSS for the client interface design."
+        "title" => "Numenor - Client",
+        "description" => "Numenor - Client is configured to connect to the local Numenor server."
     );
     echo json_encode($response);
 
@@ -140,11 +140,28 @@ elseif ($requestType === 'showoff') {
 
 
     $response = array(
-        "creature" => array(
-            "type" => 222
+        "boostedcreature" => true,
+        "creaturename" => "Orc Cultist",
+        "creatureraceid" => 1503,
+        "creatureoutfit" => array(
+            "type" => 7,
+            "head" => 0,
+            "body" => 0,
+            "legs" => 0,
+            "feet" => 0,
+            "addons" => 0,
+            "mount" => 0
         ),
-        "boss" => array(
-            "type" => 232
+        "bossname" => "Melting Frozen Horror",
+        "bossraceid" => 1336,
+        "bossoutfit" => array(
+            "type" => 261,
+            "head" => 0,
+            "body" => 0,
+            "legs" => 0,
+            "feet" => 0,
+            "addons" => 0,
+            "mount" => 0
         )
     );
     echo json_encode($response);

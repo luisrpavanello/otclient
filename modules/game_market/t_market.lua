@@ -21,6 +21,7 @@ local mainMarket = nil
 local lastItemID = 0
 local lastItemTier = 0
 local currentActionType = 1
+local cachedTransferableTibiaCoins = 0
 local isSearching = false
 local isRebuildingCategory = false
 
@@ -417,6 +418,8 @@ function onMarketReadOffer(action, amount, counter, itemId, playerName, price, s
 end
 
 function onParseStoreGetCoin(coins, transferableCoins)
+    cachedTransferableTibiaCoins = transferableCoins or 0
+
     if not marketWindow or not marketWindow:isVisible() then
         return
     end
@@ -432,6 +435,7 @@ function onParseStoreGetCoin(coins, transferableCoins)
     local selectedItem = marketWindow.contentPanel.selectedItem:getItem()
     if selectedItem and selectedItem:getId() == 22118 then
         selectedItem:setCount(transferableCoins)
+        refreshCreateOfferAmountRange()
     end
 
     local itemList = marketWindow:recursiveGetChildById("itemList")
@@ -446,6 +450,10 @@ function onParseStoreGetCoin(coins, transferableCoins)
             break
         end
     end
+end
+
+function getCachedTransferableTibiaCoins()
+    return cachedTransferableTibiaCoins or 0
 end
 
 function onResourcesBalanceChange(value, oldBalance, resourceType)
@@ -1312,6 +1320,7 @@ function onSelectChildItem(widget, selected, oldFocus)
         marketWindow.contentPanel.selectedItem:getItem():setCount(getDepotItemCount(itemID, itemTier))
     end
     onClearMainMarket(false)
+    refreshCreateOfferAmountRange()
 
     marketOffersBuy = {}
     marketOffersSell = {}
@@ -1625,6 +1634,51 @@ function updateCreateCount(widget, value)
     end
 end
 
+function refreshCreateOfferAmountRange()
+    if table.empty(lastSelectedItem) or not mainMarket then
+        return
+    end
+
+    local isTibiaCoin = lastSelectedItem.itemId == 22118
+    local itemCount = isTibiaCoin and getTransferableTibiaCoins() or
+                          getDepotItemCount(lastSelectedItem.itemId, lastSelectedItem.tier or 0)
+
+    mainMarket.amountCreateScrollBar:setIncrementStep(isTibiaCoin and 25 or 1)
+    mainMarket.amountCreateScrollBar:setStep(isTibiaCoin and 25 or 1)
+
+    if currentActionType == 0 then
+        if #mainMarket.piecePriceCreate:getText() > 0 then
+            onPiecePriceEdit(mainMarket.piecePriceCreate)
+        else
+            mainMarket.amountCreateScrollBar:setRange(0, 0)
+            mainMarket.amountCreateScrollBar:setValue(0)
+        end
+        return
+    end
+
+    if isTibiaCoin then
+        local maxCoins = math.floor(itemCount / 25) * 25
+        if maxCoins >= 25 then
+            mainMarket.amountCreateScrollBar:setRange(25, maxCoins)
+            mainMarket.amountCreateScrollBar:setValue(25)
+        else
+            mainMarket.amountCreateScrollBar:setRange(0, 0)
+            mainMarket.amountCreateScrollBar:setValue(0)
+        end
+        return
+    end
+
+    if itemCount > 0 then
+        local thing = g_things.getThingType(lastSelectedItem.itemId, ThingCategoryItem)
+        local maxCount = thing:isStackable() and 64000 or 2000
+        mainMarket.amountCreateScrollBar:setRange(1, math.min(maxCount, itemCount))
+        mainMarket.amountCreateScrollBar:setValue(1)
+    else
+        mainMarket.amountCreateScrollBar:setRange(0, 0)
+        mainMarket.amountCreateScrollBar:setValue(0)
+    end
+end
+
 function onPiecePriceEdit(widget)
     if table.empty(lastSelectedItem) then
         return
@@ -1635,8 +1689,7 @@ function onPiecePriceEdit(widget)
         mainMarket.profitAmount:setText(0)
         mainMarket.feeAmount:setText(0)
         mainMarket.createButton:setEnabled(false)
-        mainMarket.amountCreateScrollBar:setIncrementStep(25)
-        mainMarket.amountCreateScrollBar:setRange(0, 0)
+        refreshCreateOfferAmountRange()
         return
     end
 
@@ -1748,7 +1801,16 @@ function onPiecePriceEdit(widget)
                 mainMarket.amountCreateScrollBar:setStep(25)
                 mainMarket.amountCreateScrollBar:setIncrementStep(25)
             else
-                mainMarket.amountCreateScrollBar:setRange((isTibiaCoin and 25 or 1), math.min(maxCount, itemCount))
+                local minAmount = isTibiaCoin and 25 or 1
+                local maxAmount = math.min(maxCount, itemCount)
+                if isTibiaCoin then
+                    maxAmount = math.floor(maxAmount / 25) * 25
+                end
+
+                mainMarket.amountCreateScrollBar:setRange(minAmount, maxAmount)
+                if mainMarket.amountCreateScrollBar:getValue() < minAmount then
+                    mainMarket.amountCreateScrollBar:setValue(minAmount)
+                end
                 mainMarket.createButton:setEnabled(true)
             end
         else
@@ -1797,6 +1859,7 @@ function changeOfferType(widget, primary)
     end
 
     mainMarket.piecePriceCreate:clearText()
+    refreshCreateOfferAmountRange()
 end
 
 function createMarketOffer()

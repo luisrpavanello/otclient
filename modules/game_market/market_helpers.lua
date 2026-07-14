@@ -29,7 +29,13 @@ function getTransferableTibiaCoins()
     if not player then
         return 0
     end
-    return player:getResourceBalance(91) or 0
+
+    local resourceBalance = player:getResourceBalance(91) or 0
+    if resourceBalance > 0 then
+        return resourceBalance
+    end
+
+    return modules.game_market.getCachedTransferableTibiaCoins()
 end
 
 function convertGold(amount, showSign)

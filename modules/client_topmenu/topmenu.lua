@@ -346,7 +346,7 @@ function setFpsVisible(enable)
 end
 
 function setPlayersOnline(value)
-    topLeftOnlinePlayersLabel:setText(value .. " " .. tr('players online'))
+    topLeftOnlinePlayersLabel:setText("Numenor - Client - " .. value .. " " .. tr('players online'))
 end
 function setDiscordStreams(value)
     topLeftDiscordStreamersLabel:setText(value)

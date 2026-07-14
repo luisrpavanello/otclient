@@ -28,7 +28,7 @@ GameStore = {}
 -- == Enums ==--
 GameStore.website = {
     WEBSITE_GETCOINS = "https://github.com/mehah/otclient",
-    --IMAGES_URL =  "http://localhost/images/store/" --./game_store --https://docs.opentibiabr.com/opentibiabr/downloads/website-applications/applications#store-for-client-13-1
+    IMAGES_URL = "http://127.0.0.1:8080/images/store/",
 }
 
 GameStore.CoinType = {
@@ -117,11 +117,47 @@ local function getPageLabelHistory()
     return tonumber(currentPage), tonumber(pageCount)
 end
 
+local function normalizeStoreImageBaseUrl(url)
+    if not url or url == "" then
+        url = "http://127.0.0.1:8080/images/store/"
+    end
+
+    url = url:gsub("http://127%.0%.0%.1/images/store/", "http://127.0.0.1:8080/images/store/")
+    url = url:gsub("http://127%.0%.0%.1/images/store$", "http://127.0.0.1:8080/images/store")
+    url = url:gsub("http://localhost/images/store/", "http://127.0.0.1:8080/images/store/")
+    url = url:gsub("http://localhost/images/store$", "http://127.0.0.1:8080/images/store")
+    url = url:gsub("/+$", "")
+
+    return url .. "/"
+end
+
+local function getStoreImageUrl(url)
+    local path = url:gsub("^/+", "")
+    return normalizeStoreImageBaseUrl(GameStore.website.IMAGES_URL) .. path
+end
+
+local function getStoreImageLocalPath(url)
+    local path = url:gsub("^/+", "")
+    return "/game_store/images/" .. path
+end
+
 local function setImagenHttp(widget, url, isIcon)
     if GameStore.website.IMAGES_URL then
-        HTTP.downloadImage(GameStore.website.IMAGES_URL .. url, function(path, err)
+        local imageUrl = getStoreImageUrl(url)
+        HTTP.downloadImage(imageUrl, function(path, err)
             if err then
-                g_logger.warning("HTTP error: " .. err .. " - " .. GameStore.website.IMAGES_URL .. url)
+                g_logger.warning("HTTP error: " .. err .. " - " .. imageUrl)
+                local localPath = getStoreImageLocalPath(url)
+                if g_resources.fileExists(localPath) then
+                    if isIcon then
+                        widget:setIcon(localPath)
+                    else
+                        widget:setImageSource(localPath)
+                        widget:setImageFixedRatio(false)
+                    end
+                    return
+                end
+
                 if isIcon then
                     widget:setIcon("/game_store/images/dynamic-image-error")
                 else
@@ -137,11 +173,12 @@ local function setImagenHttp(widget, url, isIcon)
             end
         end)
     else
-        if not g_resources.fileExists("/game_store/images/" .. url) then
+        local localPath = getStoreImageLocalPath(url)
+        if not g_resources.fileExists(localPath) then
             widget:setImageSource("/game_store/images/dynamic-image-error")
             widget:setImageFixedRatio(false)
         else
-            widget:setImageSource("/game_store/images/" .. url)
+            widget:setImageSource(localPath)
         end
 
     end
@@ -535,9 +572,7 @@ end
 -- =============================================*/
 
 function onStoreInit(url, coinsPacketSize)
-    if not GameStore.website.IMAGES_URL then
-        GameStore.website.IMAGES_URL = url
-    end
+    GameStore.website.IMAGES_URL = normalizeStoreImageBaseUrl(url or GameStore.website.IMAGES_URL)
 end
 
 function onParseStoreGetCoin(getTibiaCoins, getTransferableCoins)

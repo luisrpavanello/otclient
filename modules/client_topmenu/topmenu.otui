@@ -59,7 +59,7 @@ TopMenuPanel
     id: topLeftOnlinePlayers
     anchors.verticalCenter: parent.verticalCenter
     anchors.horizontalCenter: parent.horizontalCenter
-    size: 100 32
+    size: 260 32
 
     Panel
       image-source: /images/icons/icon_players
@@ -69,11 +69,11 @@ TopMenuPanel
 
     Label
       id: topLeftOnlinePlayersLabel
-      !text: '- ' .. tr('players online')
+      text: Numenor - Client
       anchors.left: prev.right
       margin-left: 5
       anchors.verticalCenter: prev.verticalCenter
-      width: 150
+      width: 235
 
   UIWidget
     id: topLeftDiscord
