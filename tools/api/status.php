@@ -130,8 +130,8 @@ elseif ($requestType === 'showoff') {
 
     $response = array(
         "image" => "https://raw.githubusercontent.com/mehah/otclient/main/data/images/clienticon.png",
-        "title" => "Numenor - Client",
-        "description" => "Numenor - Client is configured to connect to the local Numenor server."
+        "title" => "Zealot - Client",
+        "description" => "Zealot - Client is configured to connect to the local Zealot server."
     );
     echo json_encode($response);
 

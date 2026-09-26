@@ -69,7 +69,7 @@ TopMenuPanel
 
     Label
       id: topLeftOnlinePlayersLabel
-      text: Numenor - Client
+      text: Zealot - Client
       anchors.left: prev.right
       margin-left: 5
       anchors.verticalCenter: prev.verticalCenter

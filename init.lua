@@ -95,7 +95,7 @@ if ENABLE_SERVERS then
     }
 end
 
-g_app.setName("Numenor - Client");
+g_app.setName("Zealot - Client");
 g_app.setCompactName("otclient");
 g_app.setOrganizationName("otcr");
 

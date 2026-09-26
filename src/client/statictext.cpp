@@ -29,6 +29,38 @@
 #include "framework/core/graphicalapplication.h"
 #include "framework/graphics/fontmanager.h"
 
+namespace {
+
+std::string stripNpcKeywordMarkup(const std::string_view text)
+{
+    std::string cleaned;
+    cleaned.reserve(text.size());
+
+    for (size_t i = 0; i < text.size(); ++i) {
+        if (text[i] != '{') {
+            cleaned += text[i];
+            continue;
+        }
+
+        const auto end = text.find('}', i + 1);
+        if (end == std::string_view::npos) {
+            cleaned += text[i];
+            continue;
+        }
+
+        std::string keyword(text.substr(i + 1, end - i - 1));
+        if (const auto colorSeparator = keyword.find(','); colorSeparator != std::string::npos)
+            keyword.erase(colorSeparator);
+
+        cleaned += keyword;
+        i = end;
+    }
+
+    return cleaned;
+}
+
+} // namespace
+
 StaticText::StaticText()
 {
     m_cachedText.setFont(g_gameConfig.getStaticTextFont());
@@ -54,6 +86,10 @@ void StaticText::setFont(const std::string_view fontName) { m_cachedText.setFont
 
 bool StaticText::addMessage(const std::string_view name, const Otc::MessageMode mode, const std::string_view text)
 {
+    const std::string displayText = (mode == Otc::MessageNpcFrom || mode == Otc::MessageNpcFromStartBlock)
+        ? stripNpcKeywordMarkup(text)
+        : std::string(text);
+
     //TODO: this could be moved to lua
     // first message
     if (m_messages.empty()) {
@@ -72,14 +108,14 @@ bool StaticText::addMessage(const std::string_view name, const Otc::MessageMode 
         m_updateEvent = nullptr;
     }
 
-    int delay = std::max<int>(g_gameConfig.getStaticDurationPerCharacter() * text.length(), g_gameConfig.getMinStatictextDuration());
+    int delay = std::max<int>(g_gameConfig.getStaticDurationPerCharacter() * displayText.length(), g_gameConfig.getMinStatictextDuration());
     if (isYell())
         delay *= 2;
 
     if (g_app.mustOptimize())
         delay /= 2;
 
-    m_messages.emplace_back(text, g_clock.millis() + delay);
+    m_messages.emplace_back(displayText, g_clock.millis() + delay);
     compose();
 
     if (!m_updateEvent)
